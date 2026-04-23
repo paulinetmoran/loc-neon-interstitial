@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,9 +67,10 @@
   .safety-item a { color: #0077c5; text-decoration: none; }
 
   /* ── Modal overlay ── */
-  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: flex-end; z-index: 100; }
-  .modal-overlay.hidden { display: none; }
-  .modal { width: 540px; background: #fff; height: 100%; display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.12); }
+  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0); display: flex; justify-content: flex-end; z-index: 100; transition: background .3s ease; pointer-events: none; }
+  .modal-overlay.visible { background: rgba(0,0,0,0.4); pointer-events: all; }
+  .modal { width: 540px; background: #fff; height: 100%; display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.12); transform: translateX(100%); transition: transform .7s cubic-bezier(0.4, 0, 0.2, 1); }
+  .modal-overlay.visible .modal { transform: translateX(0); }
   .modal-header { padding: 16px 24px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .modal-header h2 { font-size: 15px; font-weight: 600; }
   .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #767676; line-height: 1; padding: 4px; }
@@ -282,7 +284,7 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal-overlay hidden" id="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
       <div class="modal" onclick="event.stopPropagation()">
         <div class="modal-header">
           <h2>Apply for Line of Credit</h2>
@@ -413,7 +415,7 @@
       footer() {
         return `
           <button class="btn-back" onclick="goTo('step1')">‹ Back</button>
-          <button class="btn-primary" onclick="goTo('step2review')">Save and continue</button>
+          <button class="btn-primary" onclick="goTo('step3')">Save and continue</button>
         `;
       }
     },
@@ -458,18 +460,40 @@
           <div class="step-title">Review owner information</div>
           <div class="step-subtitle">Complete this info as the guarantor—someone that owns 25% or more of the business and has significant responsibility for managing the business. Then let us know if you have any co-owners.</div>
           <div class="form-section">
-            <div class="form-section-title">Owners information <a onclick="void(0)">Edit</a></div>
-            <div class="review-grid">
-              <div class="review-item"><label>Legal first name</label><div class="value">Amy</div></div>
-              <div class="review-item"><label>Legal last name</label><div class="value">James</div></div>
-              <div class="review-item"><label>Date of birth</label><div class="value">08 / 12 / ••••</div></div>
-              <div class="review-item"><label>SSN</label><div class="value">••• •• 1234</div></div>
-              <div class="review-item"><label>Phone number</label><div class="value">(415) 908-1090</div></div>
-              <div class="review-item"><label>Address</label><div class="value">1333 Gough St 1 Apt 11B,<br>San Francisco, CA 94109-9322</div></div>
+            <div class="form-section-title">Owners information</div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0"><label>Legal first name</label><input type="text" value="Amy" /></div>
+              <div class="form-group" style="margin-bottom:0"><label>Legal last name</label><input type="text" value="James" /></div>
+            </div>
+            <div class="form-row" style="margin-top:12px">
+              <div class="form-group" style="margin-bottom:0"><label>Date of birth</label><input type="text" value="08 / 12 / ••••" /></div>
+              <div class="form-group" style="margin-bottom:0">
+                <label>SSN</label><input type="text" value="••• •• - 1234" />
+                <div class="form-hint">This won't impact your personal credit score.</div>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:12px">
+              <label>Phone number</label><input type="tel" value="(415) 908-1090" />
+            </div>
+            <div class="toggle-row">
+              <div class="toggle"></div>
+              <span>Same as my business phone number</span>
+            </div>
+            <div class="form-group">
+              <label>Personal address</label>
+              <input type="text" value="🔍 1333 Gough St 1 Apt 11B" />
+            </div>
+            <div class="toggle-row">
+              <div class="toggle"></div>
+              <span>Same as my business address</span>
+            </div>
+            <div class="form-row triple">
+              <div class="form-group" style="margin-bottom:0"><label>City</label><input type="text" value="San Francisco" /></div>
+              <div class="form-group" style="margin-bottom:0"><label>State</label><select><option>California</option></select></div>
+              <div class="form-group" style="margin-bottom:0"><label>Zip code</label><input type="text" value="94109-9322" /></div>
             </div>
           </div>
           <div class="form-section">
-            <div class="form-section-title">Co-owner information</div>
             <div class="form-group">
               <label>Does anyone else directly or indirectly own 25% or more of the business?</label>
               <select id="coowner-select" onchange="handleCoownerToggle(this.value)">
@@ -478,32 +502,48 @@
               </select>
             </div>
             <div id="coowner-fields" class="hidden">
-              <div class="co-owner-header">Co-owner information <button class="btn-danger-link">Delete</button></div>
-              <div class="form-row">
-                <div class="form-group" style="margin-bottom:0"><label>Legal first name</label><input type="text" /></div>
-                <div class="form-group" style="margin-bottom:0"><label>Legal last name</label><input type="text" /></div>
-              </div>
-              <div class="form-row" style="margin-top:12px">
-                <div class="form-group" style="margin-bottom:0"><label>Date of birth</label><input type="text" placeholder="MM / DD / YYYY" /></div>
-                <div class="form-group" style="margin-bottom:0">
-                  <label>SSN</label><input type="text" placeholder="••• - •• - ••••" />
-                  <div class="form-hint">This won't impact your personal credit score.</div>
+              <div class="co-owner-section" style="border-top:1px solid #e0e0e0;padding-top:16px;margin-top:8px">
+                <div class="co-owner-header">Co-owner information <button class="btn-danger-link">Delete</button></div>
+                <div class="form-row">
+                  <div class="form-group" style="margin-bottom:0"><label>Legal first name</label><input type="text" /></div>
+                  <div class="form-group" style="margin-bottom:0"><label>Legal last name</label><input type="text" /></div>
+                </div>
+                <div class="form-row" style="margin-top:12px">
+                  <div class="form-group" style="margin-bottom:0"><label>Date of birth</label><input type="text" placeholder="MM / DD / YYYY" /></div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label>SSN</label><input type="text" placeholder="••• - •• - ••••" />
+                    <div class="form-hint">This won't impact your personal credit score.</div>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-top:12px">
+                  <label>Phone number</label><input type="tel" />
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle"></div>
+                  <span>Same as my business address</span>
+                </div>
+                <div class="form-group">
+                  <label>Business address</label>
+                  <input type="text" placeholder="🔍 Search address" />
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle"></div>
+                  <span>Same as my business phone number</span>
+                </div>
+                <div class="form-row triple">
+                  <div class="form-group" style="margin-bottom:0"><label>City</label><input type="text" /></div>
+                  <div class="form-group" style="margin-bottom:0"><label>State</label><select><option></option><option>California</option><option>New York</option><option>Texas</option></select></div>
+                  <div class="form-group" style="margin-bottom:0"><label>Zip code</label><input type="text" /></div>
                 </div>
               </div>
-              <div class="form-group" style="margin-top:12px">
-                <label>Phone number</label><input type="tel" />
-              </div>
-              <div class="form-group">
-                <label>Business address</label><input type="text" placeholder="🔍 Search address" />
-              </div>
-              <button class="btn-add">＋ Add co-owner</button>
+              <button class="btn-add" style="margin-top:16px">＋ Add co-owner</button>
             </div>
           </div>
         `;
       },
       footer() {
         return `
-          <button class="btn-back" onclick="goTo('step2review')">‹ Back</button>
+          <button class="btn-back" onclick="goTo('step2')">‹ Back</button>
           <button class="btn-primary" onclick="goTo('step4')">Save and continue</button>
         `;
       }
@@ -556,8 +596,42 @@
 
     loading: {
       render() {
-        // Auto-advance after 2.5s
-        setTimeout(() => goTo('approved'), 2500);
+        // Step 1: fade loading → congrats after 2.5s
+        setTimeout(() => {
+          const body = document.getElementById('modal-body');
+          if (!body) return;
+          body.style.transition = 'opacity 0.4s ease';
+          body.style.opacity = '0';
+          setTimeout(() => {
+            body.innerHTML = `
+              <div class="loading-screen">
+                <div class="outcome-illo" style="font-size:72px;margin-bottom:16px;">🙌</div>
+                <div class="loading-title" style="font-size:18px;font-weight:700;margin-bottom:8px;">Congrats! You're approved for a Line of Credit.</div>
+                <div class="loading-status"><div class="spinner"></div> Loading your credit limit</div>
+                <div style="flex:1"></div>
+                <div id="tools-section" style="opacity:0;transform:translateY(40px);transition:opacity 0.5s ease,transform 0.5s ease;width:100%;display:flex;flex-direction:column;align-items:center;margin-bottom:8px;">
+                  <div style="font-size:13px;color:#767676;margin-bottom:12px;">🔒 You're also approved for these new tools with your bank</div>
+                  <div class="outcome-chips">
+                    <div class="outcome-chip"><div class="outcome-chip-dot chip-green">qb</div> Payments</div>
+                    <div class="outcome-chip"><div class="outcome-chip-dot chip-blue">P</div> Payroll*</div>
+                    <div class="outcome-chip"><div class="outcome-chip-dot chip-purple">B</div> B2B Network</div>
+                    <div class="outcome-chip"><div class="outcome-chip-dot chip-green">$</div> Bill Pay*</div>
+                  </div>
+                  <div class="outcome-note">*Subscription may be required</div>
+                </div>
+                <div style="font-size:11px;color:#b0b0b0;padding-bottom:8px;">QuickBooks Line of Credit is issued by WebBank.</div>
+              </div>
+            `;
+            body.style.opacity = '1';
+            // Step 2: slide up tools section after 2s
+            setTimeout(() => {
+              const tools = document.getElementById('tools-section');
+              if (tools) { tools.style.opacity = '1'; tools.style.transform = 'translateY(0)'; }
+              // Step 3: navigate to draw screen after 2 more seconds
+              setTimeout(() => showHomepage(), 3500);
+            }, 2000);
+          }, 400);
+        }, 2500);
         return `
           <div class="loading-screen">
             <div style="font-size:13px;color:#4a4a4a;margin-bottom:20px;text-align:center;">We are reviewing your information to get<br>everything ready for you</div>
@@ -574,11 +648,11 @@
     approved: {
       render() {
         return `
-          <div class="outcome-screen">
-            <div class="outcome-illo">🙌</div>
-            <div class="outcome-title">Congrats! You're approved for a Line of Credit.</div>
+          <div class="loading-screen">
+            <div class="outcome-illo" style="font-size:72px;margin-bottom:16px;">🙌</div>
+            <div class="loading-title" style="font-size:18px;font-weight:700;margin-bottom:8px;">Congrats! You're approved for a Line of Credit.</div>
             <div class="loading-status"><div class="spinner"></div> Loading your credit limit</div>
-            <div style="height:40px"></div>
+            <div style="height:32px"></div>
             <div style="font-size:13px;color:#767676;margin-bottom:12px;">🔒 You're also approved for these new tools with your bank</div>
             <div class="outcome-chips">
               <div class="outcome-chip"><div class="outcome-chip-dot chip-green">qb</div> Payments</div>
@@ -588,6 +662,39 @@
             </div>
             <div class="outcome-note">*Subscription may be required</div>
             <div style="font-size:11px;color:#b0b0b0;margin-top:auto;padding-top:40px;">QuickBooks Line of Credit is issued by WebBank.</div>
+          </div>
+        `;
+      },
+      footer() { return ''; }
+    },
+
+    draw: {
+      render() {
+        document.querySelector('.modal-header h2').textContent = 'QuickBooks Line of Credit';
+        return `
+          <div style="max-width:520px;margin:40px auto;padding:0 8px;">
+            <h1 style="font-size:28px;font-weight:700;text-align:center;margin-bottom:24px;line-height:1.2;">You're approved for $50,000–take your first draw!</h1>
+            <div style="margin-bottom:8px;">
+              <div style="font-size:15px;font-weight:600;margin-bottom:4px;">How much would you like to draw?</div>
+              <div style="font-size:13px;color:#4a4a4a;margin-bottom:10px;">Businesses like yours typically draw cash to buy inventory, fund payroll, or pay a bill.</div>
+              <div style="position:relative;">
+                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#767676;font-size:15px;">$</span>
+                <input type="text" style="width:100%;padding:10px 12px 10px 24px;border:1px solid #b0b0b0;border-radius:4px;font-size:15px;" placeholder="" />
+              </div>
+              <div style="font-size:12px;color:#767676;margin-top:4px;">Available credit: $50,000 (Interest rate: 13.99%)</div>
+            </div>
+            <div style="border:1px solid #0077c5;border-radius:6px;padding:14px 16px;margin-top:16px;display:flex;gap:12px;align-items:flex-start;">
+              <span style="font-size:18px;">💡</span>
+              <div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Prefer to advance an invoice?</div>
+                <div style="font-size:13px;color:#4a4a4a;">Use when you can't wait for a customer to pay your invoices. Interest is 13.49% and is waived if your customer pays within the first 30 days.* <a href="#" style="color:#0077c5;text-decoration:none;">Advance an invoice</a></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
+              <button class="btn-outline" style="padding:10px 20px;">Skip for now</button>
+              <button class="btn-primary" style="padding:10px 20px;">Continue to loan terms</button>
+            </div>
+            <div style="font-size:11px;color:#767676;line-height:1.5;margin-top:60px;">*Payments can't be applied to the balance automatically if the invoice is paid through GoPayment, Payment links, or the QuickBooks Online Receive Payment experience. Interest waiver feature only applies to customer payment of exact loan amount, with no borrower prepayment. Your customer's invoice payments will be automatically applied up to the outstanding loan amount.</div>
           </div>
         `;
       },
@@ -628,13 +735,55 @@
   };
 
   function openModal(screen) {
-    document.getElementById('modal-overlay').classList.remove('hidden');
+    document.getElementById('modal-overlay').classList.add('visible');
     goTo(screen);
   }
 
   function closeModal() {
-    document.getElementById('modal-overlay').classList.add('hidden');
+    document.getElementById('modal-overlay').classList.remove('visible');
     currentScreen = null;
+  }
+
+  function showHomepage() {
+    closeModal();
+    // Wait for drawer to slide out before showing takeover
+    setTimeout(() => {
+    // Replace the entire app shell with a full-width takeover
+    document.querySelector('.app-shell').innerHTML = `
+      <div style="width:100%;height:100vh;display:flex;flex-direction:column;background:#fff;">
+        <div style="height:48px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;">
+          <span style="font-size:15px;font-weight:600;">QuickBooks Line of Credit</span>
+          <button onclick="void(0)" style="background:none;border:none;font-size:20px;cursor:pointer;color:#767676;">✕</button>
+        </div>
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:60px 24px;">
+          <div style="width:100%;max-width:520px;">
+            <h1 style="font-size:32px;font-weight:700;text-align:center;margin-bottom:32px;line-height:1.2;">You're approved for $50,000–take your first draw!</h1>
+            <div style="margin-bottom:8px;">
+              <div style="font-size:15px;font-weight:600;margin-bottom:4px;">How much would you like to draw?</div>
+              <div style="font-size:13px;color:#4a4a4a;margin-bottom:10px;">Businesses like yours typically draw cash to buy inventory, fund payroll, or pay a bill.</div>
+              <div style="position:relative;">
+                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#767676;font-size:15px;">$</span>
+                <input type="text" style="width:100%;padding:10px 12px 10px 24px;border:1px solid #b0b0b0;border-radius:4px;font-size:15px;" placeholder="" />
+              </div>
+              <div style="font-size:12px;color:#767676;margin-top:4px;">Available credit: $50,000 (Interest rate: 13.99%)</div>
+            </div>
+            <div style="border:1px solid #0077c5;border-radius:6px;padding:14px 16px;margin-top:16px;display:flex;gap:12px;align-items:flex-start;">
+              <span style="font-size:18px;flex-shrink:0;">💡</span>
+              <div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Prefer to advance an invoice?</div>
+                <div style="font-size:13px;color:#4a4a4a;line-height:1.5;">Use when you can't wait for a customer to pay your invoices. Interest is 13.49% and is waived if your customer pays within the first 30 days.* <a href="#" style="color:#0077c5;text-decoration:none;">Advance an invoice</a></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
+              <button class="btn-outline" style="padding:10px 20px;">Skip for now</button>
+              <button class="btn-primary" style="padding:10px 20px;">Continue to loan terms</button>
+            </div>
+            <div style="font-size:11px;color:#767676;line-height:1.5;margin-top:80px;">*Payments can't be applied to the balance automatically if the invoice is paid through GoPayment, Payment links, or the QuickBooks Online Receive Payment experience. Interest waiver feature only applies to customer payment of exact loan amount, with no borrower prepayment. Your customer's invoice payments will be automatically applied up to the outstanding loan amount.</div>
+          </div>
+        </div>
+      </div>
+    `;
+    }, 500);
   }
 
   function goTo(screen) {
